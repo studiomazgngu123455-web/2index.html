@@ -161,10 +161,13 @@
             border-radius: 30px;
         }
 
-        .timer-text {
+        .info-text {
             font-size: 0.8rem;
             margin-top: 8px;
-            color: #ffaa66;
+            color: #88ffaa;
+            background: #1a2a1aaa;
+            padding: 5px 12px;
+            border-radius: 20px;
         }
 
         @media (max-width: 500px) {
@@ -191,14 +194,14 @@
         <button class="spin-btn" id="spinBtn">🌀 دَوِّر الحَظ 🌀</button>
         <div id="resultMessage" class="result-card">✨ إضغط دَوِّر و اكسب جوايز خرافية ✨</div>
         <div class="spark-text">💥 جائزة كبرى iPhone 7 💥</div>
-        <div id="timerMessage" class="timer-text"></div>
+        <div id="codeStatus" class="info-text"></div>
     </div>
 </div>
 
 <script>
     (function(){
         // ============================================================
-        // الجوائز الحقيقية ONLY (لا يوجد ايفون 7 بينهم)
+        // الجوائز الحقيقية (لا يوجد ايفون 7 بينهم)
         // ============================================================
         const SEGMENTS = [
             { name: "💎 VIP 6",      prizeId: "vip6",     display: "💎 VIP 6" },
@@ -235,7 +238,7 @@
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinBtn');
         const resultDiv = document.getElementById('resultMessage');
-        const timerMessage = document.getElementById('timerMessage');
+        const codeStatus = document.getElementById('codeStatus');
 
         let currentRotation = 0;
         let spinning = false;
@@ -245,76 +248,57 @@
         let finalRotation = 0;
 
         // ============================================================
-        // منع اللعب مرة أخرى حتى بعد تحديث الصفحة (لمدة يومين)
+        // نظام الكود الفريد (مرة واحدة لكل شحنة)
+        // التخزين: localStorage للكود المستخدم
         // ============================================================
-        const STORAGE_KEY = "malok_elsh7n_spun";
-        const EXPIRY_DAYS = 2;
+        
+        // الحصول على الكود من رابط الصفحة (مثال: ?code=ABC123)
+        function getCodeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('code');
+        }
 
-        function hasUserPlayedBefore() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return false;
-            
-            try {
-                const data = JSON.parse(stored);
-                const now = Date.now();
-                if (now < data.expiry) {
-                    return true; // لا يزال في فترة المنع
-                } else {
-                    // انتهت المدة، نحذف التخزين
-                    localStorage.removeItem(STORAGE_KEY);
-                    return false;
-                }
-            } catch(e) {
-                return false;
+        // التحقق من صلاحية الكود (هل استخدم من قبل؟)
+        function isCodeValid(code) {
+            if (!code) return false;
+            const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '{}');
+            // نتحقق إذا الكود موجود ومستخدم
+            if (usedCodes[code] === true) {
+                return false; // الكود استخدم قبل كده
             }
+            return true; // الكود جديد وصالح
         }
 
-        function markUserPlayed() {
-            const expiryDate = Date.now() + (EXPIRY_DAYS * 24 * 60 * 60 * 1000);
-            const data = {
-                played: true,
-                expiry: expiryDate
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        // تسجيل الكود كمستخدم
+        function markCodeAsUsed(code) {
+            if (!code) return;
+            const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '{}');
+            usedCodes[code] = true;
+            localStorage.setItem('used_codes', JSON.stringify(usedCodes));
         }
 
-        function getRemainingTime() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return null;
-            try {
-                const data = JSON.parse(stored);
-                const now = Date.now();
-                if (now < data.expiry) {
-                    const remainingMs = data.expiry - now;
-                    const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
-                    const remainingDays = Math.floor(remainingHours / 24);
-                    const remainingHoursLeft = remainingHours % 24;
-                    return { days: remainingDays, hours: remainingHoursLeft };
-                }
-            } catch(e) {}
-            return null;
-        }
-
-        function updateButtonState() {
-            if (hasUserPlayedBefore()) {
+        // إظهار حالة الكود للمستخدم
+        function displayCodeStatus() {
+            const code = getCodeFromURL();
+            if (!code) {
+                codeStatus.innerHTML = "⚠️ لا يوجد كود صالح! هذه الفرصة غير متاحة ⚠️";
+                codeStatus.style.color = "#ff8888";
                 spinBtn.disabled = true;
-                spinBtn.innerText = "⏳ انتهت الفرصة ⏳";
-                const remaining = getRemainingTime();
-                if (remaining) {
-                    if (remaining.days > 0) {
-                        timerMessage.innerHTML = `🔒 يمكنك اللعب مرة أخرى بعد ${remaining.days} يوم و ${remaining.hours} ساعة`;
-                    } else {
-                        timerMessage.innerHTML = `🔒 يمكنك اللعب مرة أخرى بعد ${remaining.hours} ساعة`;
-                    }
-                } else {
-                    timerMessage.innerHTML = "🔒 لقد استخدمت فرصتك بالفعل";
-                }
-                resultDiv.innerHTML = "✨ انتظر دورتك القادمة ✨";
-            } else {
-                spinBtn.disabled = false;
-                spinBtn.innerText = "🌀 دَوِّر الحَظ 🌀";
-                timerMessage.innerHTML = "";
+                spinBtn.innerText = "🔒 رابط غير صالح 🔒";
+                return "invalid";
             }
+            
+            if (!isCodeValid(code)) {
+                codeStatus.innerHTML = "❌ هذا الرابط تم استخدامه بالفعل! كل شحنة لها مرة واحدة فقط ❌";
+                codeStatus.style.color = "#ff8888";
+                spinBtn.disabled = true;
+                spinBtn.innerText = "🔒 استُخدمت الفرصة 🔒";
+                return "used";
+            }
+            
+            codeStatus.innerHTML = "✅ كود صالح! لك فرصة واحدة على هذه الشحنة ✅";
+            codeStatus.style.color = "#aaffaa";
+            return "valid";
         }
 
         // فتح تبويب باسم الجائزة
@@ -357,7 +341,7 @@
                             <div class="emoji-big">🎉</div>
                             <h1>${DISPLAY_MAP[prizeId] || prizeId}</h1>
                             <p>تهانينا من ملوك الشحن! 🎊</p>
-                            <p>تواصل مع الدعم لاستلام جائزتك</p>
+                            <p>شكراً لشحنك معنا</p>
                         </div>
                     </body>
                     </html>
@@ -435,9 +419,15 @@
                 resultDiv.innerHTML = `🏆 ${wonPrize.display} 🏆`;
                 openPrizeTab(wonPrize.prizeId);
                 
-                // تسجيل أن المستخدم لعب
-                markUserPlayed();
-                updateButtonState();
+                // تسجيل الكود كمستخدم (منع التكرار)
+                const code = getCodeFromURL();
+                if (code) {
+                    markCodeAsUsed(code);
+                }
+                
+                spinBtn.disabled = true;
+                spinBtn.innerText = "🎲 تم السحب 🎲";
+                codeStatus.innerHTML = "✅ تم استخدام فرصتك بنجاح! ✅";
                 return;
             }
             
@@ -452,9 +442,10 @@
 
         function startWheel() {
             if (spinning) return;
-            if (hasUserPlayedBefore()) {
-                resultDiv.innerHTML = "⚠️ لقد استخدمت فرصتك بالفعل ⚠️";
-                updateButtonState();
+            
+            const code = getCodeFromURL();
+            if (!code || !isCodeValid(code)) {
+                resultDiv.innerHTML = "⚠️ هذا الرابط غير صالح أو تم استخدامه ⚠️";
                 return;
             }
             
@@ -474,8 +465,11 @@
         function init() {
             currentRotation = 0.2;
             render(currentRotation);
-            updateButtonState();
-            spinBtn.addEventListener('click', startWheel);
+            
+            const status = displayCodeStatus();
+            if (status === "valid") {
+                spinBtn.addEventListener('click', startWheel);
+            }
         }
 
         init();
