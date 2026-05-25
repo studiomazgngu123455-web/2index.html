@@ -161,6 +161,12 @@
             border-radius: 30px;
         }
 
+        .timer-text {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: #ffaa66;
+        }
+
         @media (max-width: 500px) {
             .wheel-area { width: 280px; height: 280px; }
             .title-main { font-size: 1.9rem; }
@@ -185,6 +191,7 @@
         <button class="spin-btn" id="spinBtn">🌀 دَوِّر الحَظ 🌀</button>
         <div id="resultMessage" class="result-card">✨ إضغط دَوِّر و اكسب جوايز خرافية ✨</div>
         <div class="spark-text">💥 جائزة كبرى iPhone 7 💥</div>
+        <div id="timerMessage" class="timer-text"></div>
     </div>
 </div>
 
@@ -192,7 +199,6 @@
     (function(){
         // ============================================================
         // الجوائز الحقيقية ONLY (لا يوجد ايفون 7 بينهم)
-        // العجلة ستعرض هذه الجوائز فقط، وما تراه هو ما ستربحه
         // ============================================================
         const SEGMENTS = [
             { name: "💎 VIP 6",      prizeId: "vip6",     display: "💎 VIP 6" },
@@ -205,7 +211,6 @@
             { name: "💰 1000 Coins", prizeId: "1000c",    display: "💰 1000 عملة ذهبية" }
         ];
 
-        // خريطة العناوين للتبويب
         const TAB_TITLE_MAP = {
             "vip6": "🎁 هديتك: VIP 6",
             "1000c": "🎁 هديتك: 1000 عملة",
@@ -230,15 +235,87 @@
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinBtn');
         const resultDiv = document.getElementById('resultMessage');
+        const timerMessage = document.getElementById('timerMessage');
 
         let currentRotation = 0;
         let spinning = false;
-        let hasSpun = false;
         let animId = null;
         let spinStart = 0;
         const DURATION = 3800;
         let finalRotation = 0;
-        let landedPrize = null;  // الجائزة التي سيفوز بها المستخدم
+
+        // ============================================================
+        // منع اللعب مرة أخرى حتى بعد تحديث الصفحة (لمدة يومين)
+        // ============================================================
+        const STORAGE_KEY = "malok_elsh7n_spun";
+        const EXPIRY_DAYS = 2;
+
+        function hasUserPlayedBefore() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return false;
+            
+            try {
+                const data = JSON.parse(stored);
+                const now = Date.now();
+                if (now < data.expiry) {
+                    return true; // لا يزال في فترة المنع
+                } else {
+                    // انتهت المدة، نحذف التخزين
+                    localStorage.removeItem(STORAGE_KEY);
+                    return false;
+                }
+            } catch(e) {
+                return false;
+            }
+        }
+
+        function markUserPlayed() {
+            const expiryDate = Date.now() + (EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+            const data = {
+                played: true,
+                expiry: expiryDate
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getRemainingTime() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return null;
+            try {
+                const data = JSON.parse(stored);
+                const now = Date.now();
+                if (now < data.expiry) {
+                    const remainingMs = data.expiry - now;
+                    const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+                    const remainingDays = Math.floor(remainingHours / 24);
+                    const remainingHoursLeft = remainingHours % 24;
+                    return { days: remainingDays, hours: remainingHoursLeft };
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function updateButtonState() {
+            if (hasUserPlayedBefore()) {
+                spinBtn.disabled = true;
+                spinBtn.innerText = "⏳ انتهت الفرصة ⏳";
+                const remaining = getRemainingTime();
+                if (remaining) {
+                    if (remaining.days > 0) {
+                        timerMessage.innerHTML = `🔒 يمكنك اللعب مرة أخرى بعد ${remaining.days} يوم و ${remaining.hours} ساعة`;
+                    } else {
+                        timerMessage.innerHTML = `🔒 يمكنك اللعب مرة أخرى بعد ${remaining.hours} ساعة`;
+                    }
+                } else {
+                    timerMessage.innerHTML = "🔒 لقد استخدمت فرصتك بالفعل";
+                }
+                resultDiv.innerHTML = "✨ انتظر دورتك القادمة ✨";
+            } else {
+                spinBtn.disabled = false;
+                spinBtn.innerText = "🌀 دَوِّر الحَظ 🌀";
+                timerMessage.innerHTML = "";
+            }
+        }
 
         // فتح تبويب باسم الجائزة
         function openPrizeTab(prizeId) {
@@ -333,7 +410,6 @@
             drawWheel(angle);
         }
 
-        // الحصول على الجائزة التي يشير إليها السهم (في منتصف القطعة)
         function getPrizeAtPointer(angleRad) {
             const segCount = SEGMENTS.length;
             const segAngle = (Math.PI * 2) / segCount;
@@ -355,19 +431,13 @@
                 currentRotation = finalRotation % (Math.PI * 2);
                 render(currentRotation);
                 
-                // الحصول على الجائزة التي استقر عليها السهم
                 const wonPrize = getPrizeAtPointer(currentRotation);
-                
-                // عرض النتيجة في الصفحة
                 resultDiv.innerHTML = `🏆 ${wonPrize.display} 🏆`;
-                
-                // فتح تبويب باسم الجائزة الحقيقية
                 openPrizeTab(wonPrize.prizeId);
                 
-                spinBtn.disabled = false;
-                hasSpun = true;
-                spinBtn.disabled = true;
-                spinBtn.innerText = "🎲 تم السحب 🎲";
+                // تسجيل أن المستخدم لعب
+                markUserPlayed();
+                updateButtonState();
                 return;
             }
             
@@ -382,17 +452,16 @@
 
         function startWheel() {
             if (spinning) return;
-            if (hasSpun) {
-                resultDiv.innerHTML = "⚠️ انتهت فرصتك ⚠️";
+            if (hasUserPlayedBefore()) {
+                resultDiv.innerHTML = "⚠️ لقد استخدمت فرصتك بالفعل ⚠️";
+                updateButtonState();
                 return;
             }
             
-            // اختيار قطعة عشوائية ليقف السهم في منتصفها بالضبط
             const randomSegment = Math.floor(Math.random() * SEGMENTS.length);
             const segCount = SEGMENTS.length;
             const segAngle = (Math.PI * 2) / segCount;
             const pointerFixed = (3 * Math.PI) / 2;
-            // نجعل السهم يشير إلى منتصف القطعة المطلوبة
             const targetMidAngle = (pointerFixed - (randomSegment * segAngle + segAngle/2) + 2 * Math.PI) % (2 * Math.PI);
             finalRotation = targetMidAngle;
             
@@ -405,6 +474,7 @@
         function init() {
             currentRotation = 0.2;
             render(currentRotation);
+            updateButtonState();
             spinBtn.addEventListener('click', startWheel);
         }
 
