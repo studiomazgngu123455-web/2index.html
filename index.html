@@ -14,7 +14,7 @@
         }
 
         body {
-            background: radial-gradient(circle at 10% 30%, #0a2f2a, #030c0a);
+            background: radial-gradient(circle at 10% 20%, #0a1f1a, #020706);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -24,19 +24,20 @@
         }
 
         .gold-container {
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(12px);
             border-radius: 80px;
             padding: 25px 25px 40px;
             box-shadow: 0 30px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,215,0,0.5);
             border: 1px solid rgba(255, 200, 70, 0.6);
-            max-width: 550px;
+            max-width: 580px;
             width: 100%;
+            transition: all 0.3s;
         }
 
         .title-main {
             text-align: center;
-            font-size: 2.4rem;
+            font-size: 2.5rem;
             font-weight: 900;
             background: linear-gradient(135deg, #FFE6B0, #FFB347, #FFD966);
             -webkit-background-clip: text;
@@ -49,13 +50,13 @@
 
         .title-shadow {
             text-align: center;
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: #FFDD99;
             background: #2c2618aa;
             display: inline-block;
             width: auto;
             margin: 0 auto 20px;
-            padding: 6px 22px;
+            padding: 8px 24px;
             border-radius: 40px;
             font-weight: bold;
             backdrop-filter: blur(4px);
@@ -63,8 +64,8 @@
 
         .wheel-area {
             position: relative;
-            width: 340px;
-            height: 340px;
+            width: 360px;
+            height: 360px;
             margin: 0 auto;
         }
 
@@ -75,37 +76,38 @@
             width: 100% !important;
             height: 100% !important;
             border-radius: 50%;
-            box-shadow: 0 0 0 8px #e9b13b, 0 0 0 14px #7a4c0e, 0 20px 35px black;
+            box-shadow: 0 0 0 10px #e9b13b, 0 0 0 18px #7a4c0e, 0 25px 40px black;
+            transition: all 0.2s;
         }
 
         .pointer {
             position: absolute;
-            top: -32px;
+            top: -35px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 26px solid transparent;
-            border-right: 26px solid transparent;
-            border-top: 58px solid #f3b33d;
-            filter: drop-shadow(0 8px 8px rgba(0,0,0,0.5));
+            border-left: 28px solid transparent;
+            border-right: 28px solid transparent;
+            border-top: 62px solid #f3b33d;
+            filter: drop-shadow(0 10px 8px rgba(0,0,0,0.5));
             z-index: 15;
         }
 
         .pointer::before {
             content: "⚡";
             position: absolute;
-            top: -70px;
-            left: -19px;
-            font-size: 38px;
+            top: -78px;
+            left: -23px;
+            font-size: 44px;
             color: #ffdd88;
-            text-shadow: 0 0 4px darkorange;
+            text-shadow: 0 0 6px darkorange;
             font-weight: bold;
         }
 
         .spin-wrapper {
             text-align: center;
-            margin-top: 50px;
+            margin-top: 55px;
         }
 
         .spin-btn {
@@ -120,7 +122,7 @@
             cursor: pointer;
             box-shadow: 0 10px 0 #6a3e0b;
             transition: 0.08s linear;
-            width: 260px;
+            width: 270px;
             letter-spacing: 3px;
         }
 
@@ -152,28 +154,29 @@
         }
 
         .spark-text {
-            font-size: 0.9rem;
+            font-size: 1rem;
             margin-top: 12px;
             color: #ffd58c;
             background: #2a2418;
             display: inline-block;
-            padding: 4px 18px;
+            padding: 6px 20px;
             border-radius: 30px;
+            font-weight: bold;
         }
 
         .info-text {
-            font-size: 0.8rem;
-            margin-top: 8px;
+            font-size: 0.85rem;
+            margin-top: 10px;
             color: #88ffaa;
             background: #1a2a1aaa;
-            padding: 5px 12px;
-            border-radius: 20px;
+            padding: 6px 14px;
+            border-radius: 25px;
         }
 
         @media (max-width: 500px) {
-            .wheel-area { width: 280px; height: 280px; }
-            .title-main { font-size: 1.9rem; }
-            .spin-btn { font-size: 1.7rem; width: 220px; }
+            .wheel-area { width: 300px; height: 300px; }
+            .title-main { font-size: 2rem; }
+            .spin-btn { font-size: 1.8rem; width: 230px; }
             .result-card { font-size: 1.3rem; }
         }
     </style>
@@ -193,7 +196,7 @@
     <div class="spin-wrapper">
         <button class="spin-btn" id="spinBtn">🌀 دَوِّر الحَظ 🌀</button>
         <div id="resultMessage" class="result-card">✨ إضغط دَوِّر و اكسب جوايز خرافية ✨</div>
-        <div class="spark-text">💥 جائزة كبرى iPhone 7 💥</div>
+        <div class="spark-text">💥 جائزة كبرى iPhone 7 في انتظارك 💥</div>
         <div id="codeStatus" class="info-text"></div>
     </div>
 </div>
@@ -201,19 +204,23 @@
 <script>
     (function(){
         // ============================================================
-        // الجوائز الحقيقية (لا يوجد ايفون 7 بينهم)
+        // الجوائز المرئية على العجلة (iPhone 7 موجود للشكل فقط)
         // ============================================================
         const SEGMENTS = [
-            { name: "iphone 7",      prizeId: "iphone 7",     display: "iphone 7" },
-            { name: "💰 1000 Coins", prizeId: "1000c",    display: "💰 1000 عملة ذهبية" },
+            { name: "📱 iPhone 7",   prizeId: "iphone7",  display: "iPhone 7" },   // شكل فقط - لن تقف عليه العجلة أبداً
+            { name: "💎 VIP 6",      prizeId: "vip6",     display: "💎 VIP 6" },
+            { name: "💰 1000c",      prizeId: "1000c",    display: "💰 1000" },
             { name: "👑 VIP 5",      prizeId: "vip5",     display: "👑 VIP 5" },
             { name: "💎 VIP 4",      prizeId: "vip4",     display: "💎 VIP 4" },
-            { name: "🔥 5000 Coins", prizeId: "5000c",    display: "🔥 5000 عملة ذهبية" },
-            { name: "⭐ 10000 Coins",prizeId: "10000c",   display: "⭐ 10000 عملة ذهبية" },
-            { name: "💎 VIP 6",      prizeId: "vip6",     display: "💎 VIP 6" },
-            { name: "💰 1000 Coins", prizeId: "1000c",    display: "💰 1000 عملة ذهبية" }
+            { name: "🔥 5000c",      prizeId: "5000c",    display: "🔥 5000" },
+            { name: "⭐ 10000c",     prizeId: "10000c",   display: "⭐ 10000" },
+            { name: "💎 VIP 6",      prizeId: "vip6",     display: "💎 VIP 6" }
         ];
 
+        // القطاعات الفعلية القابلة للربح (كل شيء ما عدا iPhone 7)
+        const ACTUAL_PRIZES = SEGMENTS.filter(seg => seg.prizeId !== "iphone7");
+
+        // خريطة العناوين والرسائل للتبويب
         const TAB_TITLE_MAP = {
             "vip6": "🎁 هديتك: VIP 6",
             "1000c": "🎁 هديتك: 1000 عملة",
@@ -232,7 +239,11 @@
             "10000c": "⭐ 10000 عملة ذهبية"
         };
 
-        const COLORS = ["#E63946", "#F7B05E", "#2A9D8F", "#E9C46A", "#6A9C89", "#F4A261", "#E76F51", "#43AA8B"];
+        // ألوان العجلة الجديدة - أكثر فخامة وتنوعاً
+        const COLORS = [
+            "#E63946", "#F4A261", "#2A9D8F", "#E9C46A", 
+            "#9B5DE5", "#F15BB5", "#00BBF9", "#FEE440"
+        ];
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
@@ -249,27 +260,18 @@
 
         // ============================================================
         // نظام الكود الفريد (مرة واحدة لكل شحنة)
-        // التخزين: localStorage للكود المستخدم
         // ============================================================
-        
-        // الحصول على الكود من رابط الصفحة (مثال: ?code=ABC123)
         function getCodeFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('code');
         }
 
-        // التحقق من صلاحية الكود (هل استخدم من قبل؟)
         function isCodeValid(code) {
             if (!code) return false;
             const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '{}');
-            // نتحقق إذا الكود موجود ومستخدم
-            if (usedCodes[code] === true) {
-                return false; // الكود استخدم قبل كده
-            }
-            return true; // الكود جديد وصالح
+            return !usedCodes[code];
         }
 
-        // تسجيل الكود كمستخدم
         function markCodeAsUsed(code) {
             if (!code) return;
             const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '{}');
@@ -277,7 +279,6 @@
             localStorage.setItem('used_codes', JSON.stringify(usedCodes));
         }
 
-        // إظهار حالة الكود للمستخدم
         function displayCodeStatus() {
             const code = getCodeFromURL();
             if (!code) {
@@ -301,10 +302,10 @@
             return "valid";
         }
 
-        // فتح تبويب باسم الجائزة
+        // فتح تبويب الجائزة بشكل جميل
         function openPrizeTab(prizeId) {
             const tabTitle = TAB_TITLE_MAP[prizeId] || `🎁 هديتك: ${prizeId}`;
-            const newWindow = window.open('about:blank', tabTitle, 'width=500,height=400');
+            const newWindow = window.open('about:blank', tabTitle, 'width=550,height=450');
             if (newWindow) {
                 newWindow.document.write(`
                     <!DOCTYPE html>
@@ -314,7 +315,7 @@
                         <title>${tabTitle}</title>
                         <style>
                             body {
-                                background: linear-gradient(135deg, #1a472a, #0a1f1a);
+                                background: linear-gradient(135deg, #0f2b1f, #030c08);
                                 display: flex;
                                 justify-content: center;
                                 align-items: center;
@@ -325,20 +326,25 @@
                                 color: #FFD966;
                             }
                             .prize-box {
-                                background: rgba(0,0,0,0.8);
-                                padding: 40px;
-                                border-radius: 50px;
-                                border: 2px solid gold;
-                                box-shadow: 0 0 50px rgba(255,215,0,0.3);
+                                background: rgba(0,0,0,0.85);
+                                padding: 45px;
+                                border-radius: 60px;
+                                border: 3px solid gold;
+                                box-shadow: 0 0 60px rgba(255,215,0,0.4);
+                                animation: glow 1.5s infinite alternate;
                             }
-                            h1 { font-size: 2.5rem; margin-bottom: 20px; }
-                            p { font-size: 1.3rem; }
-                            .emoji-big { font-size: 5rem; }
+                            @keyframes glow {
+                                from { box-shadow: 0 0 20px gold; }
+                                to { box-shadow: 0 0 60px #ffaa33; }
+                            }
+                            h1 { font-size: 2.8rem; margin-bottom: 20px; }
+                            p { font-size: 1.4rem; }
+                            .emoji-big { font-size: 5.5rem; }
                         </style>
                     </head>
                     <body>
                         <div class="prize-box">
-                            <div class="emoji-big">🎉</div>
+                            <div class="emoji-big">🎉🏆🎉</div>
                             <h1>${DISPLAY_MAP[prizeId] || prizeId}</h1>
                             <p>تهانينا من ملوك الشحن! 🎊</p>
                             <p>شكراً لشحنك معنا</p>
@@ -352,6 +358,7 @@
             }
         }
 
+        // رسم العجلة بشكل جذاب
         function drawWheel(angleRad) {
             const segCount = SEGMENTS.length;
             const angleStep = (Math.PI * 2) / segCount;
@@ -363,10 +370,21 @@
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, start, end);
                 ctx.lineTo(centerX, centerY);
-                ctx.fillStyle = COLORS[i % COLORS.length];
+                
+                // تدرج ألوان لكل قطعة
+                const grad = ctx.createLinearGradient(
+                    centerX + Math.cos(start) * 150,
+                    centerY + Math.sin(start) * 150,
+                    centerX + Math.cos(end) * 150,
+                    centerY + Math.sin(end) * 150
+                );
+                grad.addColorStop(0, COLORS[i % COLORS.length]);
+                grad.addColorStop(1, COLORS[(i+1) % COLORS.length]);
+                ctx.fillStyle = grad;
                 ctx.fill();
-                ctx.strokeStyle = "#FFD966";
-                ctx.lineWidth = 3;
+                
+                ctx.strokeStyle = "#FFE484";
+                ctx.lineWidth = 3.5;
                 ctx.stroke();
                 
                 ctx.save();
@@ -374,26 +392,32 @@
                 ctx.rotate(start + angleStep / 2);
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.font = "bold 19px 'Cairo', 'Segoe UI'";
-                ctx.fillStyle = "#1F2E0E";
+                ctx.font = "bold 18px 'Cairo', 'Segoe UI'";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.shadowBlur = 3;
+                ctx.shadowColor = "black";
                 let txt = SEGMENTS[i].name;
-                if (txt.length > 12) txt = txt.slice(0,10)+"..";
-                ctx.fillText(txt, 190, 8);
+                if (txt.length > 10) txt = txt.slice(0,9)+"..";
+                ctx.fillText(txt, 195, 8);
                 ctx.restore();
             }
+            
+            // مركز العجلة
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 70, 0, Math.PI*2);
+            ctx.arc(centerX, centerY, 75, 0, Math.PI*2);
             ctx.fillStyle = "#F5C542";
+            ctx.shadowBlur = 8;
             ctx.fill();
             ctx.fillStyle = "#AD5E0A";
-            ctx.font = "bold 33px Tahoma";
-            ctx.fillText("🎯", 272, 325);
+            ctx.font = "bold 35px Tahoma";
+            ctx.fillText("🎯", 270, 328);
         }
 
         function render(angle) {
             drawWheel(angle);
         }
 
+        // الحصول على الجائزة التي يشير إليها السهم
         function getPrizeAtPointer(angleRad) {
             const segCount = SEGMENTS.length;
             const segAngle = (Math.PI * 2) / segCount;
@@ -416,14 +440,20 @@
                 render(currentRotation);
                 
                 const wonPrize = getPrizeAtPointer(currentRotation);
-                resultDiv.innerHTML = `🏆 ${wonPrize.display} 🏆`;
-                openPrizeTab(wonPrize.prizeId);
                 
-                // تسجيل الكود كمستخدم (منع التكرار)
-                const code = getCodeFromURL();
-                if (code) {
-                    markCodeAsUsed(code);
+                // لو لا قدر الله وقع على iPhone 7 (مفروض محصلش) نبدله تلقائياً
+                let finalPrizeId = wonPrize.prizeId;
+                if (finalPrizeId === "iphone7") {
+                    const safePrize = ACTUAL_PRIZES[0];
+                    finalPrizeId = safePrize.prizeId;
                 }
+                
+                const finalDisplay = DISPLAY_MAP[finalPrizeId] || wonPrize.display;
+                resultDiv.innerHTML = `🏆 ${finalDisplay} 🏆`;
+                openPrizeTab(finalPrizeId);
+                
+                const code = getCodeFromURL();
+                if (code) markCodeAsUsed(code);
                 
                 spinBtn.disabled = true;
                 spinBtn.innerText = "🎲 تم السحب 🎲";
@@ -432,8 +462,8 @@
             }
             
             let t = elapsed / DURATION;
-            let easeOut = 1 - Math.pow(1 - t, 3.5);
-            const totalTurns = 8.2 * 2 * Math.PI;
+            let easeOut = 1 - Math.pow(1 - t, 3.8);
+            const totalTurns = 8.5 * 2 * Math.PI;
             let currentAnimRot = finalRotation + (totalTurns * (1 - easeOut));
             currentRotation = currentAnimRot;
             render(currentRotation);
@@ -449,11 +479,15 @@
                 return;
             }
             
-            const randomSegment = Math.floor(Math.random() * SEGMENTS.length);
+            // اختيار جائزة حقيقية من ACTUAL_PRIZES فقط (iPhone 7 مستبعد)
+            const selectedPrize = ACTUAL_PRIZES[Math.floor(Math.random() * ACTUAL_PRIZES.length)];
+            const targetSegmentIndex = SEGMENTS.findIndex(seg => seg.prizeId === selectedPrize.prizeId);
+            
             const segCount = SEGMENTS.length;
             const segAngle = (Math.PI * 2) / segCount;
             const pointerFixed = (3 * Math.PI) / 2;
-            const targetMidAngle = (pointerFixed - (randomSegment * segAngle + segAngle/2) + 2 * Math.PI) % (2 * Math.PI);
+            // نجعل السهم يقف في منتصف القطعة المطلوبة بالضبط
+            const targetMidAngle = (pointerFixed - (targetSegmentIndex * segAngle + segAngle/2) + 2 * Math.PI) % (2 * Math.PI);
             finalRotation = targetMidAngle;
             
             spinning = true;
@@ -463,9 +497,8 @@
         }
 
         function init() {
-            currentRotation = 0.2;
+            currentRotation = 0.15;
             render(currentRotation);
-            
             const status = displayCodeStatus();
             if (status === "valid") {
                 spinBtn.addEventListener('click', startWheel);
